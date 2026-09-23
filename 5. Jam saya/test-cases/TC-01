@@ -1,0 +1,12 @@
+Input:
+23:50
++35
++70
+-20
+---
+
+Output:
+Jam Awal: 23:50
+Jam Akhir: 01:15
+Total Menit: +85
+Pergantian Hari: 1
