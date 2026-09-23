@@ -3,72 +3,101 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class App {
+
+    private static final String TANDA_SELESAI = "---";
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        Map<Integer, Integer> freq = new HashMap<>();
-        boolean hasData = false;
+        Map<Integer, Integer> freq = bacaFrekuensi(scanner);
 
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine().trim();
-            if (line.equals("---")) break;
-            if (line.isEmpty()) continue;
-            int val = Integer.parseInt(line);
-            freq.put(val, freq.getOrDefault(val, 0) + 1);
-            hasData = true;
-        }
-
-        if (!hasData) {
+        if (freq.isEmpty()) {
             return;
         }
 
-        int tertinggi = Integer.MIN_VALUE, terendah = Integer.MAX_VALUE;
-        for (int v : freq.keySet()) {
-            if (v > tertinggi) tertinggi = v;
-            if (v < terendah) terendah = v;
-        }
+        int[] ekstrem = cariNilaiTertinggiTerendah(freq);
+        int tertinggi = ekstrem[0];
+        int terendah = ekstrem[1];
 
-        Integer terbanyak = null, tersedikit = null;
-        for (int v : freq.keySet()) {
-            int f = freq.get(v);
-            if (terbanyak == null) {
-                terbanyak = v;
-            } else {
-                int fb = freq.get(terbanyak);
-                if (f > fb || (f == fb && v > terbanyak)) terbanyak = v;
-            }
-            if (tersedikit == null) {
-                tersedikit = v;
-            } else {
-                int fs = freq.get(tersedikit);
-                if (f < fs || (f == fs && v < tersedikit)) tersedikit = v;
-            }
-        }
+        int terbanyak = cariBerdasarkanFrekuensi(freq, true);
+        int tersedikit = cariBerdasarkanFrekuensi(freq, false);
 
-        Integer jumlahTertinggiVal = null, jumlahTerendahVal = null;
-        long jumlahTertinggiHasil = 0, jumlahTerendahHasil = 0;
-        for (int v : freq.keySet()) {
-            long hasil = (long) v * freq.get(v);
-            if (jumlahTertinggiVal == null) {
-                jumlahTertinggiVal = v;
-                jumlahTertinggiHasil = hasil;
-            } else if (hasil > jumlahTertinggiHasil || (hasil == jumlahTertinggiHasil && v > jumlahTertinggiVal)) {
-                jumlahTertinggiVal = v;
-                jumlahTertinggiHasil = hasil;
-            }
-            if (jumlahTerendahVal == null) {
-                jumlahTerendahVal = v;
-                jumlahTerendahHasil = hasil;
-            } else if (hasil < jumlahTerendahHasil || (hasil == jumlahTerendahHasil && v < jumlahTerendahVal)) {
-                jumlahTerendahVal = v;
-                jumlahTerendahHasil = hasil;
-            }
-        }
+        long[] hasilTerbesar = cariBerdasarkanHasilKali(freq, true);
+        long[] hasilTerkecil = cariBerdasarkanHasilKali(freq, false);
 
         System.out.println("Tertinggi: " + tertinggi);
         System.out.println("Terendah: " + terendah);
         System.out.println("Terbanyak: " + terbanyak + " (" + freq.get(terbanyak) + "x)");
         System.out.println("Tersedikit: " + tersedikit + " (" + freq.get(tersedikit) + "x)");
-        System.out.println("Jumlah Tertinggi: " + jumlahTertinggiVal + " * " + freq.get(jumlahTertinggiVal) + " = " + jumlahTertinggiHasil);
-        System.out.println("Jumlah Terendah: " + jumlahTerendahVal + " * " + freq.get(jumlahTerendahVal) + " = " + jumlahTerendahHasil);
+        System.out.println("Jumlah Tertinggi: " + hasilTerbesar[0] + " * " + freq.get((int) hasilTerbesar[0])
+                + " = " + hasilTerbesar[1]);
+        System.out.println("Jumlah Terendah: " + hasilTerkecil[0] + " * " + freq.get((int) hasilTerkecil[0])
+                + " = " + hasilTerkecil[1]);
+    }
+
+    // Membaca angka satu per baris sampai menemukan "---", sambil menghitung frekuensi kemunculannya.
+    private static Map<Integer, Integer> bacaFrekuensi(Scanner scanner) {
+        Map<Integer, Integer> freq = new HashMap<>();
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine().trim();
+            if (line.equals(TANDA_SELESAI)) break;
+            if (line.isEmpty()) continue;
+            int val = Integer.parseInt(line);
+            freq.put(val, freq.getOrDefault(val, 0) + 1);
+        }
+        return freq;
+    }
+
+    private static int[] cariNilaiTertinggiTerendah(Map<Integer, Integer> freq) {
+        int tertinggi = Integer.MIN_VALUE;
+        int terendah = Integer.MAX_VALUE;
+        for (int v : freq.keySet()) {
+            if (v > tertinggi) tertinggi = v;
+            if (v < terendah) terendah = v;
+        }
+        return new int[]{tertinggi, terendah};
+    }
+
+    // Mencari nilai dengan frekuensi ter-banyak/ter-sedikit.
+    // Tie-break: jika frekuensinya sama, nilai yang lebih besar dipilih untuk "terbanyak",
+    // dan nilai yang lebih kecil dipilih untuk "tersedikit".
+    private static int cariBerdasarkanFrekuensi(Map<Integer, Integer> freq, boolean cariTerbanyak) {
+        Integer terpilih = null;
+        for (int v : freq.keySet()) {
+            if (terpilih == null) {
+                terpilih = v;
+                continue;
+            }
+            int frekuensiV = freq.get(v);
+            int frekuensiTerpilih = freq.get(terpilih);
+            boolean lebihUtama = cariTerbanyak
+                    ? (frekuensiV > frekuensiTerpilih || (frekuensiV == frekuensiTerpilih && v > terpilih))
+                    : (frekuensiV < frekuensiTerpilih || (frekuensiV == frekuensiTerpilih && v < terpilih));
+            if (lebihUtama) terpilih = v;
+        }
+        return terpilih;
+    }
+
+    // Mencari nilai dengan hasil kali (nilai * frekuensi) ter-besar/ter-kecil.
+    // Tie-break: jika hasil kalinya sama, nilai yang lebih besar dipilih untuk "tertinggi",
+    // dan nilai yang lebih kecil dipilih untuk "terendah".
+    private static long[] cariBerdasarkanHasilKali(Map<Integer, Integer> freq, boolean cariTerbesar) {
+        Integer nilaiTerpilih = null;
+        long hasilTerpilih = 0;
+        for (int v : freq.keySet()) {
+            long hasil = (long) v * freq.get(v);
+            if (nilaiTerpilih == null) {
+                nilaiTerpilih = v;
+                hasilTerpilih = hasil;
+                continue;
+            }
+            boolean lebihUtama = cariTerbesar
+                    ? (hasil > hasilTerpilih || (hasil == hasilTerpilih && v > nilaiTerpilih))
+                    : (hasil < hasilTerpilih || (hasil == hasilTerpilih && v < nilaiTerpilih));
+            if (lebihUtama) {
+                nilaiTerpilih = v;
+                hasilTerpilih = hasil;
+            }
+        }
+        return new long[]{nilaiTerpilih, hasilTerpilih};
     }
 }
