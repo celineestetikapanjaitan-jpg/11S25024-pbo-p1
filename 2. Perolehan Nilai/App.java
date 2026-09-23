@@ -7,7 +7,7 @@ public class App {
 
     private static final int JUMLAH_KOMPONEN = 6;
     private static final int BOBOT_TOTAL_WAJIB = 100;
-    private static final int PERSENTASE_MAKS = 100;
+    private static final double PERSENTASE_MAKS = 100.0;
     private static final String TANDA_SELESAI = "---";
     private static final String FORMAT_SALAH =
             "Data tidak valid. Silahkan menggunakan format: Simbol|Bobot|Perolehan-Nilai";
@@ -33,7 +33,7 @@ public class App {
             return;
         }
 
-        int totalBobotDeclared = jumlahkan(bobotDeclared);
+        int totalBobotDeclared = jumlahkanInt(bobotDeclared);
         if (totalBobotDeclared != BOBOT_TOTAL_WAJIB) {
             System.out.println("Total bobot harus " + BOBOT_TOTAL_WAJIB);
             return;
@@ -44,11 +44,17 @@ public class App {
         int[] totalPerolehanData = new int[JUMLAH_KOMPONEN];
         prosesBarisNilai(scanner, symbolIndex, totalBobotData, totalPerolehanData);
 
-        double nilaiAkhir = cetakPerolehanPerKomponen(bobotDeclared, totalBobotData, totalPerolehanData);
+        // Perhitungan (persentase & kontribusi) dan pencetakan sengaja dipisah:
+        // method di bawah hanya menghitung, tidak ada System.out di dalamnya.
+        double[] persentase = hitungPersentase(totalBobotData, totalPerolehanData);
+        double[] kontribusi = hitungKontribusi(persentase, bobotDeclared);
+        double nilaiAkhir = jumlahkanDouble(kontribusi);
+        String grade = tentukanGrade(nilaiAkhir);
 
+        cetakPerolehanPerKomponen(bobotDeclared, persentase, kontribusi);
         System.out.println();
         System.out.printf(Locale.US, ">> Nilai Akhir: %.2f%n", nilaiAkhir);
-        System.out.println(">> Grade: " + tentukanGrade(nilaiAkhir));
+        System.out.println(">> Grade: " + grade);
     }
 
     // Mengembalikan null jika salah satu baris bobot bukan angka bulat, agar caller
@@ -65,9 +71,15 @@ public class App {
         return bobot;
     }
 
-    private static int jumlahkan(int[] nilai) {
+    private static int jumlahkanInt(int[] nilai) {
         int total = 0;
         for (int v : nilai) total += v;
+        return total;
+    }
+
+    private static double jumlahkanDouble(double[] nilai) {
+        double total = 0;
+        for (double v : nilai) total += v;
         return total;
     }
 
@@ -81,6 +93,8 @@ public class App {
 
     // Membaca baris "Simbol|Bobot|Perolehan" sampai menemukan "---", lalu mengakumulasi
     // bobot dan perolehan per komponen (nilai bisa muncul lebih dari sekali per komponen).
+    // Baris dengan perolehan di luar rentang [0, bobot] dilaporkan sebagai data tidak valid
+    // dan diabaikan, bukan dipaksakan (clamp) ke batas terdekat secara diam-diam.
     private static void prosesBarisNilai(Scanner scanner, Map<String, Integer> symbolIndex,
                                           int[] totalBobotData, int[] totalPerolehanData) {
         while (scanner.hasNextLine()) {
@@ -110,8 +124,11 @@ public class App {
                 continue;
             }
 
-            // Perolehan tidak boleh melebihi bobot atau bernilai negatif.
-            perolehan = Math.min(Math.max(perolehan, 0), bobot);
+            if (perolehan < 0 || perolehan > bobot) {
+                System.out.println("Perolehan harus di antara 0 dan " + bobot
+                        + ", baris diabaikan: " + line.trim());
+                continue;
+            }
 
             int idx = symbolIndex.get(simbol);
             totalBobotData[idx] += bobot;
@@ -119,20 +136,33 @@ public class App {
         }
     }
 
-    private static double cetakPerolehanPerKomponen(int[] bobotDeclared, int[] totalBobotData,
-                                                      int[] totalPerolehanData) {
-        System.out.println("Perolehan Nilai:");
-        double nilaiAkhir = 0;
+    // Menghitung persentase perolehan (0..100) untuk tiap komponen dengan pembagian
+    // double penuh, supaya bagian desimalnya tidak hilang seperti pada pembagian bilangan bulat.
+    private static double[] hitungPersentase(int[] totalBobotData, int[] totalPerolehanData) {
+        double[] persentase = new double[JUMLAH_KOMPONEN];
         for (int i = 0; i < JUMLAH_KOMPONEN; i++) {
-            int persentase = totalBobotData[i] == 0
-                    ? 0
+            persentase[i] = totalBobotData[i] == 0
+                    ? 0.0
                     : (totalPerolehanData[i] * PERSENTASE_MAKS) / totalBobotData[i];
-            double kontribusi = (persentase / (double) PERSENTASE_MAKS) * bobotDeclared[i];
-            nilaiAkhir += kontribusi;
-            System.out.printf(Locale.US, ">> %s: %d/%d (%.2f/%d)%n",
-                    NAMA_KOMPONEN[i], persentase, PERSENTASE_MAKS, kontribusi, bobotDeclared[i]);
         }
-        return nilaiAkhir;
+        return persentase;
+    }
+
+    // Kontribusi tiap komponen ke nilai akhir = persentase komponen tersebut * bobot yang dideklarasikan.
+    private static double[] hitungKontribusi(double[] persentase, int[] bobotDeclared) {
+        double[] kontribusi = new double[JUMLAH_KOMPONEN];
+        for (int i = 0; i < JUMLAH_KOMPONEN; i++) {
+            kontribusi[i] = (persentase[i] / PERSENTASE_MAKS) * bobotDeclared[i];
+        }
+        return kontribusi;
+    }
+
+    private static void cetakPerolehanPerKomponen(int[] bobotDeclared, double[] persentase, double[] kontribusi) {
+        System.out.println("Perolehan Nilai:");
+        for (int i = 0; i < JUMLAH_KOMPONEN; i++) {
+            System.out.printf(Locale.US, ">> %s: %.0f/%.0f (%.2f/%d)%n",
+                    NAMA_KOMPONEN[i], persentase[i], PERSENTASE_MAKS, kontribusi[i], bobotDeclared[i]);
+        }
     }
 
     // Grade ditentukan dari batas tertinggi ke terendah berdasarkan nilai akhir yang sudah dibulatkan.

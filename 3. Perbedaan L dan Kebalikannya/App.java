@@ -97,9 +97,8 @@ public class App {
     }
 
     // Bentuk L: seluruh kolom pertama (atas ke bawah, termasuk pojok kiri-bawah)
-    // ditambah sisa baris terakhir dari kolom kedua sampai KOLOM TERAKHIR.
-    // (Sebelumnya loop berhenti di n-2 sehingga pojok kanan-bawah tidak pernah
-    // ikut terhitung -- itu bug off-by-one yang membuat Nilai L kurang satu sel.)
+    // ditambah sisa baris terakhir dari kolom kedua sampai kolom terakhir.
+    // Pojok kiri-bawah tidak dihitung ulang di sini karena sudah masuk lewat kolom pertama.
     private static long hitungNilaiL(int[][] matrix, int n) {
         long nilaiL = 0;
         for (int i = 0; i < n; i++) {
@@ -112,9 +111,9 @@ public class App {
     }
 
     // Bentuk kebalikan L: seluruh kolom terakhir (atas ke bawah, termasuk pojok
-    // kanan-atas) ditambah sisa baris pertama dari KOLOM PERTAMA sampai kolom
-    // kedua-dari-belakang. (Sebelumnya loop mulai dari c=1 sehingga pojok
-    // kiri-atas tidak pernah ikut terhitung -- bug off-by-one yang sama.)
+    // kanan-atas) ditambah sisa baris pertama dari kolom pertama sampai kolom
+    // kedua-dari-belakang. Pojok kanan-atas tidak dihitung ulang di sini karena
+    // sudah masuk lewat kolom terakhir.
     private static long hitungNilaiKebalikanL(int[][] matrix, int n) {
         long nilaiKebalikanL = 0;
         for (int i = 0; i < n; i++) {

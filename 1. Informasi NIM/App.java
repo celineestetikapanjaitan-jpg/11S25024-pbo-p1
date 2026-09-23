@@ -22,13 +22,19 @@ public class App {
 
         Map<String, String> prodiMap = buatPetaProdi();
         String kodeProdi = nim.substring(0, PANJANG_KODE_PRODI);
-
         if (!prodiMap.containsKey(kodeProdi)) {
             System.out.println("Kode tidak tersedia");
             return;
         }
 
-        cetakInformasi(nim, kodeProdi, prodiMap);
+        int batasTahun = PANJANG_KODE_PRODI + PANJANG_KODE_TAHUN;
+        int[] detail = parseDetailNim(nim, batasTahun);
+        if (detail == null) {
+            System.out.println(NIM_TIDAK_VALID);
+            return;
+        }
+
+        cetakInformasi(nim, prodiMap.get(kodeProdi), detail[0], detail[1]);
     }
 
     private static String bacaNim(Scanner scanner) {
@@ -55,22 +61,19 @@ public class App {
         return prodiMap;
     }
 
-    private static void cetakInformasi(String nim, String kodeProdi, Map<String, String> prodiMap) {
-        String prodi = prodiMap.get(kodeProdi);
-        int batasTahun = PANJANG_KODE_PRODI + PANJANG_KODE_TAHUN;
-
-        // Bagian tahun dan nomor urut wajib berupa digit; NIM seperti "11SXX005"
-        // (kode prodi valid tapi sisanya bukan angka) harus ditolak, bukan bikin program crash.
-        int angkatan;
-        int urutan;
+    // Mengurai bagian tahun dan nomor urut dari NIM. Mengembalikan {angkatan, urutan},
+    // atau null jika bagian tersebut bukan digit (kode prodi valid, sisanya tidak).
+    private static int[] parseDetailNim(String nim, int batasTahun) {
         try {
-            angkatan = Integer.parseInt(AWALAN_TAHUN + nim.substring(PANJANG_KODE_PRODI, batasTahun));
-            urutan = Integer.parseInt(nim.substring(batasTahun));
+            int angkatan = Integer.parseInt(AWALAN_TAHUN + nim.substring(PANJANG_KODE_PRODI, batasTahun));
+            int urutan = Integer.parseInt(nim.substring(batasTahun));
+            return new int[]{angkatan, urutan};
         } catch (NumberFormatException e) {
-            System.out.println(NIM_TIDAK_VALID);
-            return;
+            return null;
         }
+    }
 
+    private static void cetakInformasi(String nim, String prodi, int angkatan, int urutan) {
         System.out.println("Informasi NIM " + nim + ": ");
         System.out.println(">> Program Studi: " + prodi);
         System.out.println(">> Angkatan: " + angkatan);

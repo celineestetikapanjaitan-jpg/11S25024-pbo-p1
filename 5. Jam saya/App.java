@@ -78,9 +78,8 @@ public class App {
             if (line.equals(TANDA_SELESAI)) break;
             if (line.isEmpty()) continue;
 
-            // Validasi format penuh dengan regex, bukan hanya karakter pertama.
-            // Cara lama (cek line.charAt(0)) meloloskan "++5" dan "+-5" karena
-            // Integer.parseInt sendiri menerima tanda "+"/"-" di depan angkanya.
+            // Seluruh baris harus cocok dengan pola +/-diikuti digit; parseInt saja
+            // tidak cukup karena ia juga menerima tanda "+"/"-" di depan angkanya.
             if (!line.matches(POLA_PERINTAH)) {
                 System.out.println(PERINTAH_TIDAK_VALID);
                 continue;
