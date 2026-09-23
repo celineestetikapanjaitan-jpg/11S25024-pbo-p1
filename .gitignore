@@ -1,0 +1,35 @@
+# Hasil kompilasi Java
+*.class
+*.jar
+*.war
+*.ear
+
+# App.class di masing-masing studi kasus
+1. Informasi NIM/App.class
+2. Perolehan Nilai/App.class
+3. Perbedaan L dan Kebalikannya/App.class
+4. Paling Ter/App.class
+5. Jam Saya/App.class
+
+# Folder output IDE / build
+out/
+bin/
+build/
+target/
+.gradle/
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# File sistem
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Log dan file sementara
+*.log
+*.tmp
+*~

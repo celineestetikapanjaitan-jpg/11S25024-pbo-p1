@@ -1,0 +1,12 @@
+Input:
+3
+1 2 1
+2 5 2
+1 2 1
+
+Output:
+Nilai L: 6
+Nilai Kebalikan L: 6
+Nilai Tengah: 5
+Perbedaan: 0
+Dominan: 5
