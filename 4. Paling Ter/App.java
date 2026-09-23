@@ -5,6 +5,7 @@ import java.util.Scanner;
 public class App {
 
     private static final String TANDA_SELESAI = "---";
+    private static final String DATA_TIDAK_VALID = "Data tidak valid, baris dilewati: ";
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -35,14 +36,21 @@ public class App {
     }
 
     // Membaca angka satu per baris sampai menemukan "---", sambil menghitung frekuensi kemunculannya.
+    // Baris yang bukan angka bulat dilewati (tidak menghentikan program) agar satu baris rusak
+    // tidak membuat seluruh input gagal diproses.
     private static Map<Integer, Integer> bacaFrekuensi(Scanner scanner) {
         Map<Integer, Integer> freq = new HashMap<>();
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine().trim();
             if (line.equals(TANDA_SELESAI)) break;
             if (line.isEmpty()) continue;
-            int val = Integer.parseInt(line);
-            freq.put(val, freq.getOrDefault(val, 0) + 1);
+
+            try {
+                int val = Integer.parseInt(line);
+                freq.put(val, freq.getOrDefault(val, 0) + 1);
+            } catch (NumberFormatException e) {
+                System.out.println(DATA_TIDAK_VALID + line);
+            }
         }
         return freq;
     }

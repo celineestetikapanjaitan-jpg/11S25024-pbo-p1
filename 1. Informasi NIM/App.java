@@ -9,6 +9,7 @@ public class App {
     private static final int PANJANG_KODE_PRODI = 3;
     private static final int PANJANG_KODE_TAHUN = 2;
     private static final String AWALAN_TAHUN = "20"; // NIM hanya menyimpan 2 digit terakhir tahun angkatan.
+    private static final String NIM_TIDAK_VALID = "NIM tidak valid";
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -57,8 +58,18 @@ public class App {
     private static void cetakInformasi(String nim, String kodeProdi, Map<String, String> prodiMap) {
         String prodi = prodiMap.get(kodeProdi);
         int batasTahun = PANJANG_KODE_PRODI + PANJANG_KODE_TAHUN;
-        int angkatan = Integer.parseInt(AWALAN_TAHUN + nim.substring(PANJANG_KODE_PRODI, batasTahun));
-        int urutan = Integer.parseInt(nim.substring(batasTahun));
+
+        // Bagian tahun dan nomor urut wajib berupa digit; NIM seperti "11SXX005"
+        // (kode prodi valid tapi sisanya bukan angka) harus ditolak, bukan bikin program crash.
+        int angkatan;
+        int urutan;
+        try {
+            angkatan = Integer.parseInt(AWALAN_TAHUN + nim.substring(PANJANG_KODE_PRODI, batasTahun));
+            urutan = Integer.parseInt(nim.substring(batasTahun));
+        } catch (NumberFormatException e) {
+            System.out.println(NIM_TIDAK_VALID);
+            return;
+        }
 
         System.out.println("Informasi NIM " + nim + ": ");
         System.out.println(">> Program Studi: " + prodi);

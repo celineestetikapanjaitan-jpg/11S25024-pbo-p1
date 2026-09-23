@@ -9,6 +9,10 @@ public class App {
     private static final String JAM_TIDAK_VALID = "Jam tidak valid";
     private static final String PERINTAH_TIDAK_VALID = "Perintah tidak valid";
 
+    // Perintah yang sah hanya "+N" atau "-N" dengan N berupa satu atau lebih digit
+    // (tanpa tanda tambahan di dalamnya, jadi "++5" atau "+-5" tetap ditolak).
+    private static final String POLA_PERINTAH = "[+-]\\d+";
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int[] jamAwal = bacaJamAwal(scanner);
@@ -74,20 +78,15 @@ public class App {
             if (line.equals(TANDA_SELESAI)) break;
             if (line.isEmpty()) continue;
 
-            if (line.length() < 2 || (line.charAt(0) != '+' && line.charAt(0) != '-')) {
+            // Validasi format penuh dengan regex, bukan hanya karakter pertama.
+            // Cara lama (cek line.charAt(0)) meloloskan "++5" dan "+-5" karena
+            // Integer.parseInt sendiri menerima tanda "+"/"-" di depan angkanya.
+            if (!line.matches(POLA_PERINTAH)) {
                 System.out.println(PERINTAH_TIDAK_VALID);
                 continue;
             }
 
-            int n;
-            try {
-                n = Integer.parseInt(line.substring(1));
-            } catch (NumberFormatException e) {
-                System.out.println(PERINTAH_TIDAK_VALID);
-                continue;
-            }
-
-            int delta = line.charAt(0) == '+' ? n : -n;
+            int delta = Integer.parseInt(line);
             totalMenit += delta;
             current += delta;
 

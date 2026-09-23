@@ -11,6 +11,7 @@ public class App {
     private static final String TANDA_SELESAI = "---";
     private static final String FORMAT_SALAH =
             "Data tidak valid. Silahkan menggunakan format: Simbol|Bobot|Perolehan-Nilai";
+    private static final String BOBOT_TIDAK_VALID = "Bobot harus berupa angka bulat";
 
     // Batas bawah nilai akhir untuk tiap grade (dicek dari yang tertinggi ke terendah).
     private static final double BATAS_A = 79.5;
@@ -27,8 +28,12 @@ public class App {
         Scanner scanner = new Scanner(System.in);
 
         int[] bobotDeclared = bacaBobot(scanner);
-        int totalBobotDeclared = jumlahkan(bobotDeclared);
+        if (bobotDeclared == null) {
+            System.out.println(BOBOT_TIDAK_VALID);
+            return;
+        }
 
+        int totalBobotDeclared = jumlahkan(bobotDeclared);
         if (totalBobotDeclared != BOBOT_TOTAL_WAJIB) {
             System.out.println("Total bobot harus " + BOBOT_TOTAL_WAJIB);
             return;
@@ -46,10 +51,16 @@ public class App {
         System.out.println(">> Grade: " + tentukanGrade(nilaiAkhir));
     }
 
+    // Mengembalikan null jika salah satu baris bobot bukan angka bulat, agar caller
+    // bisa menampilkan pesan yang jelas alih-alih program berhenti dengan exception.
     private static int[] bacaBobot(Scanner scanner) {
         int[] bobot = new int[JUMLAH_KOMPONEN];
         for (int i = 0; i < JUMLAH_KOMPONEN; i++) {
-            bobot[i] = Integer.parseInt(scanner.nextLine().trim());
+            try {
+                bobot[i] = Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
         return bobot;
     }
